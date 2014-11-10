@@ -40,4 +40,5 @@ public:
 
 	static CflashtoolDlg* pInst;
 	afx_msg void OnLbnSelchangeList2();
+	afx_msg void OnBnClickedButton2();
 };

@@ -1,8 +1,5 @@
 #include "flash.h"
 
-//HANDLE g_hPipe_get = NULL;
-//HANDLE g_tmp = NULL;
-
 int FlashImg(std::wstring filePath, pf f1)
 {
 	if (filePath.empty())
@@ -11,8 +8,12 @@ int FlashImg(std::wstring filePath, pf f1)
 		std::wcout << "输入格式：flashtool path/to/xxx.zip" << std::endl;
 		return 0;
 	}
+
 	// 解压
-	std::wstring FastbootPath = L"FastbootTest.exe";
+	std::wstring iniFilePath = L".\\config.ini";
+	wchar_t lpExeFile[MAX_PATH];
+	GetPrivateProfileString(L"section", L"zipFilePath", NULL, lpExeFile, MAX_PATH, iniFilePath.c_str());
+	std::wstring FastbootPath(lpExeFile);
 	std::vector<std::wstring>  imgVec;
 
 	HZIP hz = OpenZip((void*)filePath.c_str(), 0, ZIP_FILENAME);
@@ -140,6 +141,17 @@ int RunProccessWaitOver(std::wstring cmdline, pf abc)
 	CloseHandle(pi.hProcess);
 	CloseHandle(pi.hThread);
 	return flag;
+}
+
+void iniFile(std::wstring testtool)
+{
+	std::wstring iniFilePath = L".\\config.ini";
+	if ((_access("config.ini", 0)) == -1)
+	{
+		HANDLE hIniFile = CreateFile(iniFilePath.c_str(), GENERIC_ALL, FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+		CloseHandle(hIniFile);
+	}
+	WritePrivateProfileString(L"section", L"zipFilePath", testtool.c_str(), iniFilePath.c_str());
 }
 
 /*int RunProccessWaitOver(std::wstring cmdline)

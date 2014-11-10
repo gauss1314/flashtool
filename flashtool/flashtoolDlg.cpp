@@ -69,6 +69,7 @@ BEGIN_MESSAGE_MAP(CflashtoolDlg, CDialogEx)
 	ON_WM_QUERYDRAGICON()
 	ON_BN_CLICKED(IDC_BUTTON1, &CflashtoolDlg::OnBnClickedButton1)
 	ON_LBN_SELCHANGE(IDC_LIST2, &CflashtoolDlg::OnLbnSelchangeList2)
+	ON_BN_CLICKED(IDC_BUTTON2, &CflashtoolDlg::OnBnClickedButton2)
 END_MESSAGE_MAP()
 
 
@@ -171,7 +172,6 @@ void CflashtoolDlg::OnBnClickedButton1()
 	{
 		filePathName = dlg.GetPathName(); //文件名保存在了filePathName里
 		FlashImg(filePathName, ShowMessage);
-		//MessageBox(NULL, L"刷机", MB_OK);
 	}
 	else
 	{
@@ -199,4 +199,22 @@ void ShowMessage(TCHAR *Buf)
 void CflashtoolDlg::OnLbnSelchangeList2()
 {
 	// TODO:  在此添加控件通知处理程序代码
+}
+
+
+void CflashtoolDlg::OnBnClickedButton2()
+{
+	// TODO:  在此添加控件通知处理程序代码
+	std::wstring filePathName;
+	CFileDialog dlg(TRUE, NULL, NULL, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,
+		(LPCTSTR)_TEXT("EXE Files .exe|"), NULL);
+	if (dlg.DoModal() == IDOK)
+	{
+		filePathName = dlg.GetPathName();
+		iniFile(filePathName);
+	}
+	else
+	{
+		return;
+	}
 }
