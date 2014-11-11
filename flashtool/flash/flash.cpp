@@ -1,15 +1,13 @@
-#include "flash.h"
+ï»¿#include "flash.h"
 
 int FlashImg(std::wstring filePath, pf f1)
 {
 	if (filePath.empty())
 	{
-		std::wcout << "GlassX Ë¢»ú¹¤¾ß 0.0.1" << std::endl;
-		std::wcout << "ÊäÈë¸ñÊ½£ºflashtool path/to/xxx.zip" << std::endl;
 		return 0;
 	}
 
-	// ½âÑ¹
+	// è§£åŽ‹
 	std::wstring iniFilePath = L".\\config.ini";
 	wchar_t lpExeFile[MAX_PATH];
 	GetPrivateProfileString(L"section", L"zipFilePath", NULL, lpExeFile, MAX_PATH, iniFilePath.c_str());
@@ -20,7 +18,6 @@ int FlashImg(std::wstring filePath, pf f1)
 	if (hz == NULL)
 	{
 		CloseZip(hz);
-		std::wcout << "¶ÁÈ¡zipÎÄ¼þÊ§°Ü" << std::endl;
 		return -1;
 	}
 
@@ -37,13 +34,10 @@ int FlashImg(std::wstring filePath, pf f1)
 			if (UnzipItem(hz, zi, ze.name, 0, ZIP_FILENAME) == 0)
 			{
 				imgVec.push_back((std::wstring)ze.name);
-				std::wcout << "ÒÑ¾­µÃµ½½âÑ¹ÎÄ¼þ" << ze.name << std::endl;
 			}
 			else
 			{
-				std::wcout << "½âÑ¹" << ze.name << "Ê§°Ü! ³ÌÐò¼´½«ÍË³ö" << std::endl;
 				bOK = false;
-
 				break;
 			}
 		}
@@ -56,11 +50,11 @@ int FlashImg(std::wstring filePath, pf f1)
 
 	CloseZip(hz);
 
-	/* ½âËø */
+	/* è§£é” */
 	std::wstring cmd = FastbootPath + L" oem unlock";
 	RunProccessWaitOver(cmd, f1);
 
-	/* ´´½¨½ø³ÌÖ´ÐÐÃüÁî */
+	/* åˆ›å»ºè¿›ç¨‹æ‰§è¡Œå‘½ä»¤ */
 	std::wstring flashcmd = FastbootPath + L" flash ";
 
 	for (std::vector<std::wstring>::iterator ite = imgVec.begin(); ite != imgVec.end(); ite++)
@@ -68,7 +62,6 @@ int FlashImg(std::wstring filePath, pf f1)
 		std::wstring partitionName = ite->substr(0, ite->length() - 4);
 		RunProccessWaitOver(flashcmd + partitionName + L" " + *ite, f1);
 		std::wstring tmpFile(*ite);
-		DWORD dd = GetFileAttributes(tmpFile.c_str());
 		SetFileAttributes(tmpFile.c_str(), GetFileAttributes(tmpFile.c_str()) & ~FILE_ATTRIBUTE_READONLY);
 		DeleteFile(tmpFile.c_str());
 		DWORD result = GetLastError();
@@ -121,7 +114,6 @@ int RunProccessWaitOver(std::wstring cmdline, pf abc)
 	_tcscpy_s(tmpcmdline, cmdline.length() + 1, cmdline.c_str());
 	if (!CreateProcess(NULL, tmpcmdline, NULL, NULL, TRUE, 0, NULL, NULL, &si, &pi))
 	{
-		std::wcout << "´´½¨³ÌÊ§°Ü!" << GetLastError() << std::endl;
 		return -1;
 	}
 	WaitForSingleObject(pi.hProcess, INFINITE);
@@ -153,95 +145,3 @@ void iniFile(std::wstring testtool)
 	}
 	WritePrivateProfileString(L"section", L"zipFilePath", testtool.c_str(), iniFilePath.c_str());
 }
-
-/*int RunProccessWaitOver(std::wstring cmdline)
-{
-
-PROCESS_INFORMATION pi;
-ZeroMemory(&pi, sizeof(pi));
-
-WCHAR* tmpcmdline = new WCHAR[cmdline.length() + 1];
-ZeroMemory(tmpcmdline, cmdline.length() + 1);
-_tcscpy_s(tmpcmdline, cmdline.length() + 1, cmdline.c_str());
-
-SECURITY_ATTRIBUTES saAttr;
-saAttr.nLength = sizeof(SECURITY_ATTRIBUTES);
-saAttr.bInheritHandle = TRUE;
-saAttr.lpSecurityDescriptor = NULL;
-
-if (!CreatePipe(&g_hPipe_get, &g_tmp, &saAttr, 0))
-ErrorExit(TEXT("StdoutRd CreatePipe"));
-
-if (!SetHandleInformation(g_hPipe_get, HANDLE_FLAG_INHERIT, 0))
-ErrorExit(TEXT("Stdout SetHandleInformation"));
-
-STARTUPINFO si;
-si.cb = sizeof(si);
-ZeroMemory(&si, sizeof(si));
-
-//si.hStdInput = g_hPipe_get;
-si.hStdError = g_tmp;
-si.hStdOutput = g_tmp;
-si.dwFlags |= STARTF_USESTDHANDLES;
-
-if (!CreateProcess(NULL, tmpcmdline, NULL, NULL, TRUE, 0, NULL, NULL, &si, &pi))
-{
-std::wcout << "´´½¨³ÌÊ§°Ü!" << GetLastError() << std::endl;
-return -1;
-}
-
-ReadFromPipe();
-WaitForSingleObject(pi.hProcess, INFINITE);
-
-// »ñÈ¡×Ó½ø³Ì·µ»ØÖµ
-DWORD ExitCode;
-BOOL flag = GetExitCodeProcess(pi.hProcess, &ExitCode);
-
-CloseHandle(pi.hProcess);
-CloseHandle(pi.hThread);
-
-return flag;
-}
-
-void ErrorExit(PTSTR lpszFunction)
-{
-LPVOID lpMsgBuf;
-LPVOID lpDisplayBuf;
-DWORD dw = GetLastError();
-
-FormatMessage(
-FORMAT_MESSAGE_ALLOCATE_BUFFER |
-FORMAT_MESSAGE_FROM_SYSTEM |
-FORMAT_MESSAGE_IGNORE_INSERTS,
-NULL,
-dw,
-MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-(LPTSTR)&lpMsgBuf,
-0, NULL);
-
-lpDisplayBuf = (LPVOID)LocalAlloc(LMEM_ZEROINIT,
-(lstrlen((LPCTSTR)lpMsgBuf) + lstrlen((LPCTSTR)lpszFunction) + 40)*sizeof(TCHAR));
-StringCchPrintf((LPTSTR)lpDisplayBuf,
-LocalSize(lpDisplayBuf) / sizeof(TCHAR),
-TEXT("%s failed with error %d: %s"),
-lpszFunction, dw, lpMsgBuf);
-MessageBox(NULL, (LPCTSTR)lpDisplayBuf, TEXT("Error"), MB_OK);
-
-LocalFree(lpMsgBuf);
-LocalFree(lpDisplayBuf);
-ExitProcess(1);
-}
-
-void ReadFromPipe(void)
-{
-DWORD dwRead;
-CHAR chBuf[BUFSIZE] = { 0 };
-BOOL bSuccess = FALSE;
-
-for (;;)
-{
-bSuccess = ReadFile(g_hPipe_get, chBuf, BUFSIZE, &dwRead, NULL);
-if (!bSuccess || dwRead == 0)
-break;
-}
-}*/

@@ -1,4 +1,4 @@
-#include <iostream>
+ï»¿#include <iostream>
 #include <vector>
 #include <string>
 #include <tchar.h>
@@ -8,20 +8,16 @@
 #include <io.h>
 
 const int BUFSIZE = 4096;
-// ÅĞ¶ÏÊÇ·ñÊÇimg¸ñÊ½µÄÎÄ¼ş
+// åˆ¤æ–­æ˜¯å¦æ˜¯imgæ ¼å¼çš„æ–‡ä»¶
 bool IsImg(std::wstring str);
 
 typedef void (*pf)(TCHAR *Buf);
 
-// ´´½¨½ø³ÌÖ´ĞĞ²¢µÈ´ı·µ»Ø
+// åˆ›å»ºè¿›ç¨‹æ‰§è¡Œå¹¶ç­‰å¾…è¿”å›
 int RunProccessWaitOver(std::wstring cmdline, pf abc);
 
-// ÉÕĞ´imgÎÄ¼ş
+// çƒ§å†™imgæ–‡ä»¶
 int FlashImg(std::wstring filePath, pf f1);
 
-// Ğ´ÈëiniÎÄ¼ş
+// å†™å…¥iniæ–‡ä»¶
 void iniFile(std::wstring testtool);
-
-void WriteToPipe(void);
-void ReadFromPipe(void);
-void ErrorExit(PTSTR);

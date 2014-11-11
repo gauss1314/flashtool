@@ -1,30 +1,30 @@
-
-// flashtoolDlg.h : Í·ÎÄ¼ş
+ï»¿
+// flashtoolDlg.h : å¤´æ–‡ä»¶
 //
 
 #pragma once
 #include "afxwin.h"
 
 
-// CflashtoolDlg ¶Ô»°¿ò
+// CflashtoolDlg å¯¹è¯æ¡†
 class CflashtoolDlg : public CDialogEx
 {
-// ¹¹Ôì
+// æ„é€ 
 public:
-	CflashtoolDlg(CWnd* pParent = NULL);	// ±ê×¼¹¹Ôìº¯Êı
+	CflashtoolDlg(CWnd* pParent = NULL);	// æ ‡å‡†æ„é€ å‡½æ•°
 
-// ¶Ô»°¿òÊı¾İ
+// å¯¹è¯æ¡†æ•°æ®
 	enum { IDD = IDD_FLASHTOOL_DIALOG };
 
 	protected:
-	virtual void DoDataExchange(CDataExchange* pDX);	// DDX/DDV Ö§³Ö
+	virtual void DoDataExchange(CDataExchange* pDX);	// DDX/DDV æ”¯æŒ
 
 
-// ÊµÏÖ
+// å®ç°
 protected:
 	HICON m_hIcon;
 
-	// Éú³ÉµÄÏûÏ¢Ó³Éäº¯Êı
+	// ç”Ÿæˆçš„æ¶ˆæ¯æ˜ å°„å‡½æ•°
 	virtual BOOL OnInitDialog();
 	afx_msg void OnSysCommand(UINT nID, LPARAM lParam);
 	afx_msg void OnPaint();
@@ -35,7 +35,6 @@ public:
 	afx_msg void OnBnClickedButton1();
 	void UpdateEdit(TCHAR *content);
 
-	CButton MyButton;
 	CString m_EditContent;
 
 	static CflashtoolDlg* pInst;
