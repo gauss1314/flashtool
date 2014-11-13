@@ -125,10 +125,9 @@ int RunProccessWaitOver(std::wstring cmdline, pf abc)
 	wchar_t Buffer[1000];
 	ZeroMemory(Buffer, 1000);
 	DWORD NumberOfBytesRead = 0;
-	std::string ReturnMsg;
 	while (ReadFile(hReadPipe, Buffer, 999, &NumberOfBytesRead, NULL))
 	{
-		abc((TCHAR *)Buffer);
+		abc((char *)Buffer);
 	}
 	CloseHandle(pi.hProcess);
 	CloseHandle(pi.hThread);
