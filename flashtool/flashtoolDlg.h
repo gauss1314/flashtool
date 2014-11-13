@@ -33,11 +33,14 @@ protected:
 	DECLARE_MESSAGE_MAP()
 public:
 	afx_msg void OnBnClickedButton1();
-	void UpdateEdit(TCHAR *content);
+	void UpdateEdit(char *content);
 
 	CString m_EditContent;
+	CEdit m_edit;
 
 	static CflashtoolDlg* pInst;
 	afx_msg void OnLbnSelchangeList2();
 	afx_msg void OnBnClickedButton2();
+protected:
+	afx_msg LRESULT OnFlashMsg(WPARAM wParam, LPARAM lParam);
 };
