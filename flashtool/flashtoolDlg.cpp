@@ -12,7 +12,9 @@
 #define new DEBUG_NEW
 #endif
 
-void ShowMessage(TCHAR *Buf);
+void ShowMessage(char *Buf);
+unsigned int __stdcall ThreadFunc(void *param);
+#define WM_FLASHMSG WM_USER+1
 
 // 用于应用程序“关于”菜单项的 CAboutDlg 对话框
 
@@ -60,6 +62,7 @@ void CflashtoolDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialogEx::DoDataExchange(pDX);
 	DDX_Text(pDX, IDC_EDIT1, m_EditContent);
+	DDX_Control(pDX, IDC_EDIT1, m_edit);
 }
 
 BEGIN_MESSAGE_MAP(CflashtoolDlg, CDialogEx)
@@ -69,6 +72,7 @@ BEGIN_MESSAGE_MAP(CflashtoolDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BUTTON1, &CflashtoolDlg::OnBnClickedButton1)
 	ON_LBN_SELCHANGE(IDC_LIST2, &CflashtoolDlg::OnLbnSelchangeList2)
 	ON_BN_CLICKED(IDC_BUTTON2, &CflashtoolDlg::OnBnClickedButton2)
+	ON_MESSAGE(WM_FLASHMSG, &CflashtoolDlg::OnFlashMsg)
 END_MESSAGE_MAP()
 
 
@@ -159,18 +163,20 @@ HCURSOR CflashtoolDlg::OnQueryDragIcon()
 	return static_cast<HCURSOR>(m_hIcon);
 }
 
-
-
+std::wstring filePathName;
 void CflashtoolDlg::OnBnClickedButton1()
 {
 	// TODO:  在此添加控件通知处理程序代码
-	std::wstring filePathName;
 	CFileDialog dlg(TRUE, NULL, NULL, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,
 		(LPCTSTR)_TEXT("All Files (*.*)|*.*||"), NULL);
 	if (dlg.DoModal() == IDOK)
 	{
 		filePathName = dlg.GetPathName(); //文件名保存在了filePathName里
-		FlashImg(filePathName, ShowMessage);
+		unsigned tid;
+		HANDLE hThread;
+		//m_edit.SetWindowText(filePathName.c_str());
+		hThread = (HANDLE)_beginthreadex(NULL, 0, ThreadFunc, NULL, 0, &tid);
+		CloseHandle(hThread);
 	}
 	else
 	{
@@ -178,13 +184,14 @@ void CflashtoolDlg::OnBnClickedButton1()
 	}
 }
 
-void CflashtoolDlg::UpdateEdit(TCHAR *content)
+void CflashtoolDlg::UpdateEdit(char *content)
 {
-	m_EditContent += (char *)content;
-	UpdateData(FALSE);
+	//m_EditContent += content;
+	::SendMessage(this->m_hWnd, WM_FLASHMSG, (LPARAM)content, 0);
+	//
 }
 
-void ShowMessage(TCHAR *Buf)
+void ShowMessage(char *Buf)
 {
 	CflashtoolDlg::pInst->UpdateEdit(Buf);
 }
@@ -210,4 +217,18 @@ void CflashtoolDlg::OnBnClickedButton2()
 	{
 		return;
 	}
+}
+
+unsigned int __stdcall ThreadFunc(void *param)
+{
+	unsigned int result = 0;
+	FlashImg(filePathName, ShowMessage);
+	return result;
+}
+
+afx_msg LRESULT CflashtoolDlg::OnFlashMsg(WPARAM wParam, LPARAM lParam)
+{
+	m_EditContent += (char *)wParam;
+	UpdateData(FALSE);
+	return 0;
 }
