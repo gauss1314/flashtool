@@ -33,7 +33,7 @@ protected:
 	DECLARE_MESSAGE_MAP()
 public:
 	afx_msg void OnBnClickedButton1();
-	void UpdateEdit(char *content);
+	void UpdateEdit(wchar_t *content);
 
 	CString m_EditContent;
 	CEdit m_edit;
