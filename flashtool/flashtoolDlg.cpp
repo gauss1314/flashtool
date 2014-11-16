@@ -12,7 +12,7 @@
 #define new DEBUG_NEW
 #endif
 
-void ShowMessage(char *Buf);
+void ShowMessage(wchar_t *Buf);
 unsigned int __stdcall ThreadFunc(void *param);
 #define WM_FLASHMSG WM_USER+1
 
@@ -184,14 +184,14 @@ void CflashtoolDlg::OnBnClickedButton1()
 	}
 }
 
-void CflashtoolDlg::UpdateEdit(char *content)
+void CflashtoolDlg::UpdateEdit(wchar_t *content)
 {
 	//m_EditContent += content;
 	::SendMessage(this->m_hWnd, WM_FLASHMSG, (LPARAM)content, 0);
 	//
 }
 
-void ShowMessage(char *Buf)
+void ShowMessage(wchar_t *Buf)
 {
 	CflashtoolDlg::pInst->UpdateEdit(Buf);
 }
@@ -207,7 +207,7 @@ void CflashtoolDlg::OnBnClickedButton2()
 	// TODO:  在此添加控件通知处理程序代码
 	std::wstring filePathName;
 	CFileDialog dlg(TRUE, NULL, NULL, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,
-		(LPCTSTR)_TEXT("EXE Files exe ||"), NULL);
+		(LPCTSTR)_TEXT("All Files (*.*)|*.*||"), NULL);
 	if (dlg.DoModal() == IDOK)
 	{
 		filePathName = dlg.GetPathName();
@@ -228,7 +228,10 @@ unsigned int __stdcall ThreadFunc(void *param)
 
 afx_msg LRESULT CflashtoolDlg::OnFlashMsg(WPARAM wParam, LPARAM lParam)
 {
-	m_EditContent += (char *)wParam;
+	char *inStr = (char *)wParam;
+	wchar_t outStr[1024];
+	MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, inStr, strlen(inStr) + 1, outStr, 1024);
+	m_EditContent += outStr;
 	UpdateData(FALSE);
 	return 0;
 }

@@ -109,10 +109,7 @@ int RunProccessWaitOver(std::wstring cmdline, pf abc)
 	PROCESS_INFORMATION pi;
 	ZeroMemory(&pi, sizeof(PROCESS_INFORMATION));
 
-	WCHAR* tmpcmdline = new WCHAR[cmdline.length() + 1];
-	ZeroMemory(tmpcmdline, cmdline.length() + 1);
-	_tcscpy_s(tmpcmdline, cmdline.length() + 1, cmdline.c_str());
-	if (!CreateProcess(NULL, tmpcmdline, NULL, NULL, TRUE, 0, NULL, NULL, &si, &pi))
+	if (!CreateProcess(NULL, (LPWSTR)cmdline.c_str(), NULL, NULL, TRUE, 0, NULL, NULL, &si, &pi))
 	{
 		return -1;
 	}
@@ -127,7 +124,7 @@ int RunProccessWaitOver(std::wstring cmdline, pf abc)
 	DWORD NumberOfBytesRead = 0;
 	while (ReadFile(hReadPipe, Buffer, 999, &NumberOfBytesRead, NULL))
 	{
-		abc((char *)Buffer);
+		abc(Buffer);
 	}
 	CloseHandle(pi.hProcess);
 	CloseHandle(pi.hThread);
