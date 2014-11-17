@@ -4,7 +4,7 @@
 
 #pragma once
 #include "afxwin.h"
-
+#include "afxcmn.h"
 
 // CflashtoolDlg 对话框
 class CflashtoolDlg : public CDialogEx
@@ -37,7 +37,7 @@ public:
 
 	CString m_EditContent;
 	CEdit m_edit;
-
+	CProgressCtrl pctrl;
 	static CflashtoolDlg* pInst;
 	afx_msg void OnLbnSelchangeList2();
 	afx_msg void OnBnClickedButton2();
