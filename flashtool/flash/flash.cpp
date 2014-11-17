@@ -1,19 +1,22 @@
 ﻿#include "flash.h"
+using std::wstring;
 
-int FlashImg(std::wstring filePath, pf f1)
+int FlashImg(wstring filePath, pf f1)
 {
 	if (filePath.empty())
 	{
 		return 0;
 	}
-
-	// 解压
-	std::wstring iniFilePath = L".\\config.ini";
+	wstring iniFilePath = L".\\config.ini";
 	wchar_t lpExeFile[MAX_PATH];
 	GetPrivateProfileString(L"section", L"zipFilePath", NULL, lpExeFile, MAX_PATH, iniFilePath.c_str());
-	std::wstring FastbootPath(lpExeFile);
-	std::vector<std::wstring>  imgVec;
+	wstring FastbootPath(lpExeFile);
 
+	/* 解锁 */
+	wstring cmd = FastbootPath + L" oem unlock";
+	RunProccessWaitOver(cmd, f1);
+
+	/* 解压 */
 	HZIP hz = OpenZip((void*)filePath.c_str(), 0, ZIP_FILENAME);
 	if (hz == NULL)
 	{
@@ -33,7 +36,13 @@ int FlashImg(std::wstring filePath, pf f1)
 		{
 			if (UnzipItem(hz, zi, ze.name, 0, ZIP_FILENAME) == 0)
 			{
-				imgVec.push_back((std::wstring)ze.name);
+				/* 执行命令 */
+				wstring imgName(ze.name);
+				wstring flashcmd = FastbootPath + L" flash ";
+				wstring partitionName = imgName.substr(0, imgName.size() - 4);
+				RunProccessWaitOver(flashcmd + partitionName + L" " + imgName, f1);
+				SetFileAttributes(imgName.c_str(), GetFileAttributes(imgName.c_str()) & ~FILE_ATTRIBUTE_READONLY);
+				DeleteFile(imgName.c_str());
 			}
 			else
 			{
@@ -49,27 +58,9 @@ int FlashImg(std::wstring filePath, pf f1)
 	}
 
 	CloseZip(hz);
-
-	/* 解锁 */
-	std::wstring cmd = FastbootPath + L" oem unlock";
-	RunProccessWaitOver(cmd, f1);
-
-	/* 创建进程执行命令 */
-	std::wstring flashcmd = FastbootPath + L" flash ";
-
-	for (std::vector<std::wstring>::iterator ite = imgVec.begin(); ite != imgVec.end(); ite++)
-	{
-		std::wstring partitionName = ite->substr(0, ite->length() - 4);
-		RunProccessWaitOver(flashcmd + partitionName + L" " + *ite, f1);
-		std::wstring tmpFile(*ite);
-		SetFileAttributes(tmpFile.c_str(), GetFileAttributes(tmpFile.c_str()) & ~FILE_ATTRIBUTE_READONLY);
-		DeleteFile(tmpFile.c_str());
-		DWORD result = GetLastError();
-	}
-	return 0;
 }
 
-bool IsImg(std::wstring str)
+bool IsImg(wstring str)
 {
 	int dotIndex;
 	dotIndex = str.find_last_of('.');
@@ -79,7 +70,7 @@ bool IsImg(std::wstring str)
 		return false;
 }
 
-int RunProccessWaitOver(std::wstring cmdline, pf abc)
+int RunProccessWaitOver(wstring cmdline, pf abc)
 {
 	SECURITY_ATTRIBUTES saAttr;
 	saAttr.nLength = sizeof(SECURITY_ATTRIBUTES);
@@ -131,9 +122,9 @@ int RunProccessWaitOver(std::wstring cmdline, pf abc)
 	return flag;
 }
 
-void iniFile(std::wstring testtool)
+void iniFile(wstring testtool)
 {
-	std::wstring iniFilePath = L".\\config.ini";
+	wstring iniFilePath = L".\\config.ini";
 	if ((_access("config.ini", 0)) == -1)
 	{
 		HANDLE hIniFile = CreateFile(iniFilePath.c_str(), GENERIC_ALL, FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);

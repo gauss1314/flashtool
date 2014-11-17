@@ -174,7 +174,6 @@ void CflashtoolDlg::OnBnClickedButton1()
 		filePathName = dlg.GetPathName(); //文件名保存在了filePathName里
 		unsigned tid;
 		HANDLE hThread;
-		//m_edit.SetWindowText(filePathName.c_str());
 		hThread = (HANDLE)_beginthreadex(NULL, 0, ThreadFunc, NULL, 0, &tid);
 		CloseHandle(hThread);
 	}
@@ -186,9 +185,7 @@ void CflashtoolDlg::OnBnClickedButton1()
 
 void CflashtoolDlg::UpdateEdit(wchar_t *content)
 {
-	//m_EditContent += content;
 	::SendMessage(this->m_hWnd, WM_FLASHMSG, (LPARAM)content, 0);
-	//
 }
 
 void ShowMessage(wchar_t *Buf)
