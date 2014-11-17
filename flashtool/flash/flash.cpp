@@ -1,7 +1,7 @@
 ﻿#include "flash.h"
 using std::wstring;
 
-int FlashImg(wstring filePath, pf f1)
+int FlashImg(std::wstring filePath, pf pShowMessage)
 {
 	if (filePath.empty())
 	{
@@ -14,7 +14,7 @@ int FlashImg(wstring filePath, pf f1)
 
 	/* 解锁 */
 	wstring cmd = FastbootPath + L" oem unlock";
-	RunProccessWaitOver(cmd, f1);
+	RunProccessWaitOver(cmd, pShowMessage);
 
 	/* 解压 */
 	HZIP hz = OpenZip((void*)filePath.c_str(), 0, ZIP_FILENAME);
@@ -40,7 +40,7 @@ int FlashImg(wstring filePath, pf f1)
 				wstring imgName(ze.name);
 				wstring flashcmd = FastbootPath + L" flash ";
 				wstring partitionName = imgName.substr(0, imgName.size() - 4);
-				RunProccessWaitOver(flashcmd + partitionName + L" " + imgName, f1);
+				RunProccessWaitOver(flashcmd + partitionName + L" " + imgName, pShowMessage);
 				SetFileAttributes(imgName.c_str(), GetFileAttributes(imgName.c_str()) & ~FILE_ATTRIBUTE_READONLY);
 				DeleteFile(imgName.c_str());
 			}
@@ -58,6 +58,7 @@ int FlashImg(wstring filePath, pf f1)
 	}
 
 	CloseZip(hz);
+	return 0;
 }
 
 bool IsImg(wstring str)
@@ -70,7 +71,7 @@ bool IsImg(wstring str)
 		return false;
 }
 
-int RunProccessWaitOver(wstring cmdline, pf abc)
+int RunProccessWaitOver(std::wstring cmdline, pf pShowMessage)
 {
 	SECURITY_ATTRIBUTES saAttr;
 	saAttr.nLength = sizeof(SECURITY_ATTRIBUTES);
@@ -115,7 +116,7 @@ int RunProccessWaitOver(wstring cmdline, pf abc)
 	DWORD NumberOfBytesRead = 0;
 	while (ReadFile(hReadPipe, Buffer, 999, &NumberOfBytesRead, NULL))
 	{
-		abc(Buffer);
+		pShowMessage(Buffer);
 	}
 	CloseHandle(pi.hProcess);
 	CloseHandle(pi.hThread);

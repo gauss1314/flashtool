@@ -14,7 +14,9 @@
 
 void ShowMessage(wchar_t *Buf);
 unsigned int __stdcall ThreadFunc(void *param);
+int GetProgressPace(std::wstring filepath);
 #define WM_FLASHMSG WM_USER+1
+int pace;
 
 // 用于应用程序“关于”菜单项的 CAboutDlg 对话框
 
@@ -63,6 +65,7 @@ void CflashtoolDlg::DoDataExchange(CDataExchange* pDX)
 	CDialogEx::DoDataExchange(pDX);
 	DDX_Text(pDX, IDC_EDIT1, m_EditContent);
 	DDX_Control(pDX, IDC_EDIT1, m_edit);
+	DDX_Control(pDX, IDC_PROGRESS1, pctrl);
 }
 
 BEGIN_MESSAGE_MAP(CflashtoolDlg, CDialogEx)
@@ -109,6 +112,7 @@ BOOL CflashtoolDlg::OnInitDialog()
 	SetIcon(m_hIcon, TRUE);			// 设置大图标
 	SetIcon(m_hIcon, FALSE);		// 设置小图标
 
+	pctrl.SetRange(0, 100);
 	// TODO:  在此添加额外的初始化代码
 	pInst = this;
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
@@ -172,6 +176,7 @@ void CflashtoolDlg::OnBnClickedButton1()
 	if (dlg.DoModal() == IDOK)
 	{
 		filePathName = dlg.GetPathName(); //文件名保存在了filePathName里
+		pace = GetProgressPace(filePathName);
 		unsigned tid;
 		HANDLE hThread;
 		hThread = (HANDLE)_beginthreadex(NULL, 0, ThreadFunc, NULL, 0, &tid);
@@ -230,5 +235,35 @@ afx_msg LRESULT CflashtoolDlg::OnFlashMsg(WPARAM wParam, LPARAM lParam)
 	MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, inStr, strlen(inStr) + 1, outStr, 1024);
 	m_EditContent += outStr;
 	UpdateData(FALSE);
+
+	// 使控件总是自动滚动到最新一行
+	CEdit* pEdit = (CEdit*)GetDlgItem(IDC_EDIT1);
+	pEdit->LineScroll(pEdit->GetLineCount());
+
+	// 刷新进度条
+	CflashtoolDlg::pctrl.SetPos(CflashtoolDlg::pctrl.GetPos() + pace);
 	return 0;
+}
+
+int GetProgressPace(std::wstring filepath)
+{
+	HZIP hz = OpenZip((void*)filepath.c_str(), 0, ZIP_FILENAME);
+	if (hz == NULL)
+	{
+		CloseZip(hz);
+		return -1;
+	}
+	ZIPENTRYW ze;
+	GetZipItem(hz, -1, &ze);
+	int nNum = ze.index;
+	bool bOK = TRUE;
+	int tmp = 0;
+	for (int zi = 0; zi < nNum; zi++)
+	{
+		GetZipItem(hz, zi, &ze);
+		if (IsImg(ze.name))
+			tmp++;
+	}
+	CloseZip(hz);
+	return 100 % (tmp + 1) ? 100 / (tmp + 1) + 1 : 100 / (tmp + 1);
 }
