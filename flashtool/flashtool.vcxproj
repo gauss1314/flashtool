@@ -127,7 +127,7 @@
     <Image Include="res\flashtool.ico" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="TestFlashtool.vcxproj">
+    <ProjectReference Include="..\TestFlashtool\TestFlashtool.vcxproj">
       <Project>{da4b724a-2ca6-47ff-99c3-9f5f7acdd255}</Project>
     </ProjectReference>
   </ItemGroup>
