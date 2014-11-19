@@ -167,7 +167,6 @@ HCURSOR CflashtoolDlg::OnQueryDragIcon()
 	return static_cast<HCURSOR>(m_hIcon);
 }
 
-std::wstring filePathName;
 void CflashtoolDlg::OnBnClickedButton1()
 {
 	// TODO:  在此添加控件通知处理程序代码
@@ -175,11 +174,13 @@ void CflashtoolDlg::OnBnClickedButton1()
 		(LPCTSTR)_TEXT("All Files (*.*)|*.*||"), NULL);
 	if (dlg.DoModal() == IDOK)
 	{
+		std::wstring filePathName;
 		filePathName = dlg.GetPathName(); //文件名保存在了filePathName里
 		pace = GetProgressPace(filePathName);
-		unsigned tid;
+		unsigned int tid;
 		HANDLE hThread;
-		hThread = (HANDLE)_beginthreadex(NULL, 0, ThreadFunc, NULL, 0, &tid);
+		hThread = (HANDLE)_beginthreadex(NULL, 0, ThreadFunc, (void *)&filePathName, 0, &tid);
+		WaitForSingleObject(hThread, INFINITE);
 		CloseHandle(hThread);
 	}
 	else
@@ -190,7 +191,7 @@ void CflashtoolDlg::OnBnClickedButton1()
 
 void CflashtoolDlg::UpdateEdit(wchar_t *content)
 {
-	::SendMessage(this->m_hWnd, WM_FLASHMSG, (LPARAM)content, 0);
+	::PostMessage(this->m_hWnd, WM_FLASHMSG, (LPARAM)content, 0);
 }
 
 void ShowMessage(wchar_t *Buf)
@@ -224,7 +225,8 @@ void CflashtoolDlg::OnBnClickedButton2()
 unsigned int __stdcall ThreadFunc(void *param)
 {
 	unsigned int result = 0;
-	FlashImg(filePathName, ShowMessage);
+	std::wstring tmp = *(std::wstring *)param;
+	FlashImg(tmp, ShowMessage);
 	return result;
 }
 
