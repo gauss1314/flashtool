@@ -12,13 +12,16 @@ class CflashtoolDlg : public CDialogEx
 // 构造
 public:
 	CflashtoolDlg(CWnd* pParent = NULL);	// 标准构造函数
-
+	~CflashtoolDlg();
 // 对话框数据
 	enum { IDD = IDD_FLASHTOOL_DIALOG };
 
 	protected:
 	virtual void DoDataExchange(CDataExchange* pDX);	// DDX/DDV 支持
 
+private:
+	HANDLE m_hThread;
+	wchar_t *tmpStr;
 
 // 实现
 protected:
