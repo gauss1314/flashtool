@@ -178,10 +178,10 @@ void CflashtoolDlg::OnBnClickedButton1()
 		filePathName = dlg.GetPathName(); //文件名保存在了filePathName里
 		pace = GetProgressPace(filePathName);
 		unsigned int tid;
-		HANDLE hThread;
-		hThread = (HANDLE)_beginthreadex(NULL, 0, ThreadFunc, (void *)&filePathName, 0, &tid);
-		WaitForSingleObject(hThread, INFINITE);
-		CloseHandle(hThread);
+		tmpStr = new wchar_t[filePathName.size() + 1];
+		memset(tmpStr, 0, filePathName.size());
+		wcsncpy_s(tmpStr, filePathName.size() + 1, filePathName.c_str(), filePathName.size());
+		m_hThread = (HANDLE)_beginthreadex(NULL, 0, ThreadFunc, (void *)tmpStr, 0, &tid);
 	}
 	else
 	{
@@ -191,7 +191,7 @@ void CflashtoolDlg::OnBnClickedButton1()
 
 void CflashtoolDlg::UpdateEdit(wchar_t *content)
 {
-	::PostMessage(this->m_hWnd, WM_FLASHMSG, (LPARAM)content, 0);
+	::SendMessage(this->m_hWnd, WM_FLASHMSG, (LPARAM)content, 0);
 }
 
 void ShowMessage(wchar_t *Buf)
@@ -225,17 +225,17 @@ void CflashtoolDlg::OnBnClickedButton2()
 unsigned int __stdcall ThreadFunc(void *param)
 {
 	unsigned int result = 0;
-	std::wstring tmp = *(std::wstring *)param;
-	FlashImg(tmp, ShowMessage);
+	FlashImg((wchar_t *)param, ShowMessage);
 	return result;
 }
 
 afx_msg LRESULT CflashtoolDlg::OnFlashMsg(WPARAM wParam, LPARAM lParam)
 {
-	char *inStr = (char *)wParam;
+	//char *inStr = (char *)wParam;
 	wchar_t outStr[1024];
-	MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, inStr, strlen(inStr) + 1, outStr, 1024);
-	m_EditContent += outStr;
+	wcsncpy_s(outStr, 1024, (wchar_t *)wParam, wcslen((wchar_t *)wParam));
+	//MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, inStr, strlen(inStr) + 1, outStr, 1024);
+	m_EditContent += (char *)outStr;
 	UpdateData(FALSE);
 
 	// 使控件总是自动滚动到最新一行
@@ -245,6 +245,12 @@ afx_msg LRESULT CflashtoolDlg::OnFlashMsg(WPARAM wParam, LPARAM lParam)
 	// 刷新进度条
 	CflashtoolDlg::pctrl.SetPos(CflashtoolDlg::pctrl.GetPos() + pace);
 	return 0;
+}
+
+CflashtoolDlg::~CflashtoolDlg()
+{
+	delete[] tmpStr;
+	CloseHandle(m_hThread);
 }
 
 int GetProgressPace(std::wstring filepath)

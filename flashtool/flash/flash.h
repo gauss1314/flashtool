@@ -17,7 +17,7 @@ typedef void (*pf)(wchar_t *Buf);
 int RunProccessWaitOver(std::wstring cmdline, pf pShowMessage);
 
 // 烧写img文件
-int FlashImg(std::wstring filePath, pf pShowMessage);
+int FlashImg(wchar_t *filePath, pf pShowMessage);
 
 // 写入ini文件
 void iniFile(std::wstring testtool);

@@ -1,9 +1,9 @@
 ﻿#include "flash.h"
 using std::wstring;
 
-int FlashImg(std::wstring filePath, pf pShowMessage)
+int FlashImg(wchar_t *filePath, pf pShowMessage)
 {
-	if (filePath.empty())
+	if (filePath == NULL)
 	{
 		return 0;
 	}
@@ -17,7 +17,7 @@ int FlashImg(std::wstring filePath, pf pShowMessage)
 	RunProccessWaitOver(cmd, pShowMessage);
 
 	/* 解压 */
-	HZIP hz = OpenZip((void*)filePath.c_str(), 0, ZIP_FILENAME);
+	HZIP hz = OpenZip((void*)filePath, 0, ZIP_FILENAME);
 	if (hz == NULL)
 	{
 		CloseZip(hz);
