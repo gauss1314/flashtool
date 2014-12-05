@@ -7,10 +7,11 @@ int FlashImg(wchar_t *filePath, pf pShowMessage)
 	{
 		return 0;
 	}
-	wstring iniFilePath = L".\\config.ini";
+	/*wstring iniFilePath = L".\\config.ini";
 	wchar_t lpExeFile[MAX_PATH];
 	GetPrivateProfileString(L"section", L"zipFilePath", NULL, lpExeFile, MAX_PATH, iniFilePath.c_str());
-	wstring FastbootPath(lpExeFile);
+	wstring FastbootPath(lpExeFile);*/
+	wstring FastbootPath = ReadFromIni(L"exeFilePath");
 
 	/* 解锁 */
 	wstring cmd = FastbootPath + L" oem unlock";
@@ -123,7 +124,7 @@ int RunProccessWaitOver(std::wstring cmdline, pf pShowMessage)
 	return flag;
 }
 
-void iniFile(wstring testtool)
+void WriteToIni(wstring key, wstring name)
 {
 	wstring iniFilePath = L".\\config.ini";
 	if ((_access("config.ini", 0)) == -1)
@@ -131,5 +132,14 @@ void iniFile(wstring testtool)
 		HANDLE hIniFile = CreateFile(iniFilePath.c_str(), GENERIC_ALL, FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 		CloseHandle(hIniFile);
 	}
-	WritePrivateProfileString(L"section", L"zipFilePath", testtool.c_str(), iniFilePath.c_str());
+	WritePrivateProfileString(L"section", key.c_str(), name.c_str(), iniFilePath.c_str());
+}
+
+wstring ReadFromIni(wstring key)
+{
+	wstring iniFilePath = L".\\config.ini";
+	wchar_t lpFilePath[MAX_PATH];
+	GetPrivateProfileString(L"section", key.c_str(), NULL, lpFilePath, MAX_PATH, iniFilePath.c_str());
+	wstring value(lpFilePath);
+	return value;
 }
