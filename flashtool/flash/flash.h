@@ -20,4 +20,7 @@ int RunProccessWaitOver(std::wstring cmdline, pf pShowMessage);
 int FlashImg(wchar_t *filePath, pf pShowMessage);
 
 // 写入ini文件
-void iniFile(std::wstring testtool);
+void WriteToIni(std::wstring key, std::wstring name);
+
+// 从ini文件读取
+std::wstring ReadFromIni(std::wstring key);
