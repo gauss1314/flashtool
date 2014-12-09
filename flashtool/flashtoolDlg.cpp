@@ -249,6 +249,7 @@ afx_msg LRESULT CflashtoolDlg::OnFlashMsg(WPARAM wParam, LPARAM lParam)
 	if (CflashtoolDlg::pctrl.GetPos() == 100)
 	{
 		AfxMessageBox(L"刷机已经成功！", MB_OK, 0);
+		GetDlgItem(IDC_BUTTON3)->EnableWindow(TRUE);
 		CflashtoolDlg::pctrl.SetPos(0);
 	}
 	return 0;
@@ -276,11 +277,11 @@ int GetProgressPace(std::wstring filepath)
 	for (int zi = 0; zi < nNum; zi++)
 	{
 		GetZipItem(hz, zi, &ze);
-		if (IsImg(ze.name))
+		if (IsImg(ze.name) && (wcscmp(ze.name, L"recovery.img") != 0))
 			tmp++;
 	}
 	CloseZip(hz);
-	return 100 % (tmp + 1) ? 100 / (tmp + 1) + 1 : 100 / (tmp + 1);
+	return 100 % (tmp + 3) ? 100 / (tmp + 3) + 1 : 100 / (tmp + 3);
 }
 
 void CflashtoolDlg::OnBnClickedButton3()
@@ -288,6 +289,7 @@ void CflashtoolDlg::OnBnClickedButton3()
 	// TODO:  在此添加控件通知处理程序代码
 	if (ReadFromIni(L"zipFilePath").size() && ReadFromIni(L"exeFilePath").size())
 	{
+		GetDlgItem(IDC_BUTTON3)->EnableWindow(FALSE);
 		std::wstring filePathName = ReadFromIni(L"zipFilePath");
 		pace = GetProgressPace(filePathName);
 		unsigned int tid;
