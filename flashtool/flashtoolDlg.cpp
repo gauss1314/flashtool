@@ -76,6 +76,7 @@ BEGIN_MESSAGE_MAP(CflashtoolDlg, CDialogEx)
 	ON_LBN_SELCHANGE(IDC_LIST2, &CflashtoolDlg::OnLbnSelchangeList2)
 	ON_BN_CLICKED(IDC_BUTTON2, &CflashtoolDlg::OnBnClickedButton2)
 	ON_MESSAGE(WM_FLASHMSG, &CflashtoolDlg::OnFlashMsg)
+	ON_BN_CLICKED(IDC_BUTTON3, &CflashtoolDlg::OnBnClickedButton3)
 END_MESSAGE_MAP()
 
 
@@ -115,6 +116,10 @@ BOOL CflashtoolDlg::OnInitDialog()
 	pctrl.SetRange(0, 100);
 	// TODO:  在此添加额外的初始化代码
 	pInst = this;
+	std::wstring zipPath = ReadFromIni(L"zipFilePath");
+	GetDlgItem(IDC_EDIT4)->SetWindowText(zipPath.c_str());
+	std::wstring exePath = ReadFromIni(L"exeFilePath");
+	GetDlgItem(IDC_EDIT3)->SetWindowText(exePath.c_str());
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
 
@@ -171,17 +176,13 @@ void CflashtoolDlg::OnBnClickedButton1()
 {
 	// TODO:  在此添加控件通知处理程序代码
 	CFileDialog dlg(TRUE, NULL, NULL, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,
-		(LPCTSTR)_TEXT("All Files (*.*)|*.*||"), NULL);
+		(LPCTSTR)_TEXT("All Files (*.zip)|*.zip||"), NULL);
 	if (dlg.DoModal() == IDOK)
 	{
 		std::wstring filePathName;
-		filePathName = dlg.GetPathName(); //文件名保存在了filePathName里
-		pace = GetProgressPace(filePathName);
-		unsigned int tid;
-		tmpStr = new wchar_t[filePathName.size() + 1];
-		memset(tmpStr, 0, filePathName.size());
-		wcsncpy_s(tmpStr, filePathName.size() + 1, filePathName.c_str(), filePathName.size());
-		m_hThread = (HANDLE)_beginthreadex(NULL, 0, ThreadFunc, (void *)tmpStr, 0, &tid);
+		filePathName = dlg.GetPathName();
+		WriteToIni(L"zipFilePath",filePathName);
+		GetDlgItem(IDC_EDIT4)->SetWindowText(filePathName.c_str());
 	}
 	else
 	{
@@ -210,11 +211,12 @@ void CflashtoolDlg::OnBnClickedButton2()
 	// TODO:  在此添加控件通知处理程序代码
 	std::wstring filePathName;
 	CFileDialog dlg(TRUE, NULL, NULL, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,
-		(LPCTSTR)_TEXT("All Files (*.*)|*.*||"), NULL);
+		(LPCTSTR)_TEXT("All Files (*.exe)|*.exe||"), NULL);
 	if (dlg.DoModal() == IDOK)
 	{
 		filePathName = dlg.GetPathName();
-		iniFile(filePathName);
+		WriteToIni(L"exeFilePath",filePathName);
+		GetDlgItem(IDC_EDIT3)->SetWindowText(filePathName.c_str());
 	}
 	else
 	{
@@ -244,6 +246,12 @@ afx_msg LRESULT CflashtoolDlg::OnFlashMsg(WPARAM wParam, LPARAM lParam)
 
 	// 刷新进度条
 	CflashtoolDlg::pctrl.SetPos(CflashtoolDlg::pctrl.GetPos() + pace);
+	if (CflashtoolDlg::pctrl.GetPos() == 100)
+	{
+		AfxMessageBox(L"刷机已经成功！", MB_OK, 0);
+		GetDlgItem(IDC_BUTTON3)->EnableWindow(TRUE);
+		CflashtoolDlg::pctrl.SetPos(0);
+	}
 	return 0;
 }
 
@@ -269,9 +277,37 @@ int GetProgressPace(std::wstring filepath)
 	for (int zi = 0; zi < nNum; zi++)
 	{
 		GetZipItem(hz, zi, &ze);
-		if (IsImg(ze.name))
+		if (IsImg(ze.name) && (wcscmp(ze.name, L"recovery.img") != 0))
 			tmp++;
 	}
 	CloseZip(hz);
-	return 100 % (tmp + 1) ? 100 / (tmp + 1) + 1 : 100 / (tmp + 1);
+	return 100 % (tmp + 3) ? 100 / (tmp + 3) + 1 : 100 / (tmp + 3);
+}
+
+void CflashtoolDlg::OnBnClickedButton3()
+{
+	// TODO:  在此添加控件通知处理程序代码
+	if (ReadFromIni(L"zipFilePath").size() && ReadFromIni(L"exeFilePath").size())
+	{
+		GetDlgItem(IDC_BUTTON3)->EnableWindow(FALSE);
+		std::wstring filePathName = ReadFromIni(L"zipFilePath");
+		pace = GetProgressPace(filePathName);
+		unsigned int tid;
+		tmpStr = new wchar_t[filePathName.size() + 1];
+		memset(tmpStr, 0, filePathName.size());
+		wcsncpy_s(tmpStr, filePathName.size() + 1, filePathName.c_str(), filePathName.size());
+		m_hThread = (HANDLE)_beginthreadex(NULL, 0, ThreadFunc, (void *)tmpStr, 0, &tid);
+	}
+	else if (ReadFromIni(L"zipFilePath").size() == 0 && ReadFromIni(L"exeFilePath").size() == 0)
+	{
+		AfxMessageBox(L"请选择zip文件和刷机工具", MB_OK, 0);
+	}
+	else if (ReadFromIni(L"zipFilePath").size() == 0)
+	{
+		AfxMessageBox(L"请选择zip文件", MB_OK, 0);
+	}
+	else
+	{
+		AfxMessageBox(L"请选择刷机工具", MB_OK, 0);
+	}
 }

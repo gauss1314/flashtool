@@ -20,8 +20,8 @@ public:
 	virtual void DoDataExchange(CDataExchange* pDX);	// DDX/DDV 支持
 
 private:
-	HANDLE m_hThread;
-	wchar_t *tmpStr;
+	HANDLE m_hThread = NULL;
+	wchar_t *tmpStr = NULL;
 
 // 实现
 protected:
@@ -46,4 +46,6 @@ public:
 	afx_msg void OnBnClickedButton2();
 protected:
 	afx_msg LRESULT OnFlashMsg(WPARAM wParam, LPARAM lParam);
+public:
+	afx_msg void OnBnClickedButton3();
 };

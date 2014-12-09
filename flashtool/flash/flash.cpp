@@ -7,14 +7,21 @@ int FlashImg(wchar_t *filePath, pf pShowMessage)
 	{
 		return 0;
 	}
-	wstring iniFilePath = L".\\config.ini";
-	wchar_t lpExeFile[MAX_PATH];
-	GetPrivateProfileString(L"section", L"zipFilePath", NULL, lpExeFile, MAX_PATH, iniFilePath.c_str());
-	wstring FastbootPath(lpExeFile);
+	wstring fastbootPath = ReadFromIni(L"exeFilePath");
+
+	/* adb reboot bootloader */
+	int backslashIndex = fastbootPath.find_last_of(L"\\");
+	wstring adbPath = fastbootPath.substr(0, backslashIndex + 1);
+	adbPath += L"adb.exe reboot bootloader";
+	RunProccessWaitOver(adbPath, pShowMessage);
 
 	/* 解锁 */
-	wstring cmd = FastbootPath + L" oem unlock";
+	wstring cmd = fastbootPath + L" oem unlock";
 	RunProccessWaitOver(cmd, pShowMessage);
+
+	/* 输入recovery.img */
+	wstring recoveryPath = fastbootPath + L" flash recovery ..\\recovery.img";
+	RunProccessWaitOver(recoveryPath, pShowMessage);
 
 	/* 解压 */
 	HZIP hz = OpenZip((void*)filePath, 0, ZIP_FILENAME);
@@ -32,13 +39,13 @@ int FlashImg(wchar_t *filePath, pf pShowMessage)
 	for (int zi = 0; zi < nNum; zi++)
 	{
 		GetZipItem(hz, zi, &ze);
-		if (IsImg(ze.name))
+		if (IsImg(ze.name) && (wcscmp(ze.name, L"recovery.img") != 0))
 		{
 			if (UnzipItem(hz, zi, ze.name, 0, ZIP_FILENAME) == 0)
 			{
 				/* 执行命令 */
 				wstring imgName(ze.name);
-				wstring flashcmd = FastbootPath + L" flash ";
+				wstring flashcmd = fastbootPath + L" flash ";
 				wstring partitionName = imgName.substr(0, imgName.size() - 4);
 				RunProccessWaitOver(flashcmd + partitionName + L" " + imgName, pShowMessage);
 				SetFileAttributes(imgName.c_str(), GetFileAttributes(imgName.c_str()) & ~FILE_ATTRIBUTE_READONLY);
@@ -58,6 +65,11 @@ int FlashImg(wchar_t *filePath, pf pShowMessage)
 	}
 
 	CloseZip(hz);
+
+	/* fastboot reboot */
+	wstring reboot = fastbootPath + L" reboot";
+	RunProccessWaitOver(reboot, pShowMessage);
+
 	return 0;
 }
 
@@ -105,9 +117,6 @@ int RunProccessWaitOver(std::wstring cmdline, pf pShowMessage)
 	{
 		return -1;
 	}
-	WaitForSingleObject(pi.hProcess, INFINITE);
-	DWORD ExitCode;
-	BOOL flag = GetExitCodeProcess(pi.hProcess, &ExitCode);
 
 	CloseHandle(hWritePipe);
 
@@ -118,12 +127,14 @@ int RunProccessWaitOver(std::wstring cmdline, pf pShowMessage)
 	{
 		pShowMessage(Buffer);
 	}
+	DWORD ExitCode;
+	BOOL flag = GetExitCodeProcess(pi.hProcess, &ExitCode);
 	CloseHandle(pi.hProcess);
 	CloseHandle(pi.hThread);
 	return flag;
 }
 
-void iniFile(wstring testtool)
+void WriteToIni(wstring key, wstring name)
 {
 	wstring iniFilePath = L".\\config.ini";
 	if ((_access("config.ini", 0)) == -1)
@@ -131,5 +142,14 @@ void iniFile(wstring testtool)
 		HANDLE hIniFile = CreateFile(iniFilePath.c_str(), GENERIC_ALL, FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 		CloseHandle(hIniFile);
 	}
-	WritePrivateProfileString(L"section", L"zipFilePath", testtool.c_str(), iniFilePath.c_str());
+	WritePrivateProfileString(L"section", key.c_str(), name.c_str(), iniFilePath.c_str());
+}
+
+wstring ReadFromIni(wstring key)
+{
+	wstring iniFilePath = L".\\config.ini";
+	wchar_t lpFilePath[MAX_PATH];
+	GetPrivateProfileString(L"section", key.c_str(), NULL, lpFilePath, MAX_PATH, iniFilePath.c_str());
+	wstring value(lpFilePath);
+	return value;
 }
