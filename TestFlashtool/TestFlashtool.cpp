@@ -6,6 +6,7 @@ using std::endl;
 
 int wmain(int argc, wchar_t *argv[])
 {
+	wcout.imbue(std::locale("chs"));
 	for (int i = 0; i < argc; i++)
 	{
 		wcout << argv[i] << " ";

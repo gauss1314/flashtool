@@ -20,7 +20,14 @@ int FlashImg(wchar_t *filePath, pf pShowMessage)
 	RunProccessWaitOver(cmd, pShowMessage);
 
 	/* 输入recovery.img */
-	wstring recoveryPath = fastbootPath + L" flash recovery ..\\recovery.img";
+
+	wchar_t szFilePath[MAX_PATH + 1];
+	GetModuleFileName(NULL, szFilePath, MAX_PATH);
+	wstring imgPath = szFilePath;
+	int index = imgPath.find_last_of(L'\\');
+	imgPath = imgPath.substr(0, index);
+	imgPath += L"\\recovery.img"; // ！！！ 调试的时候将recovery.img移动到flashtool.exe同目录下
+	wstring recoveryPath = fastbootPath + L" flash recovery " + imgPath;
 	RunProccessWaitOver(recoveryPath, pShowMessage);
 
 	/* 解压 */
@@ -120,12 +127,14 @@ int RunProccessWaitOver(std::wstring cmdline, pf pShowMessage)
 
 	CloseHandle(hWritePipe);
 
-	wchar_t Buffer[1000];
+	char Buffer[1000];
 	ZeroMemory(Buffer, 1000);
 	DWORD NumberOfBytesRead = 0;
 	while (ReadFile(hReadPipe, Buffer, 999, &NumberOfBytesRead, NULL))
 	{
-		pShowMessage(Buffer);
+		wchar_t outStr[1024] = { 0 };
+		MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, Buffer, strlen(Buffer) + 1, outStr, 1024);
+		pShowMessage(outStr);
 	}
 	DWORD ExitCode;
 	BOOL flag = GetExitCodeProcess(pi.hProcess, &ExitCode);

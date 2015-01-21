@@ -237,7 +237,7 @@ afx_msg LRESULT CflashtoolDlg::OnFlashMsg(WPARAM wParam, LPARAM lParam)
 	wchar_t outStr[1024];
 	wcsncpy_s(outStr, 1024, (wchar_t *)wParam, wcslen((wchar_t *)wParam));
 	//MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, inStr, strlen(inStr) + 1, outStr, 1024);
-	m_EditContent += (char *)outStr;
+	m_EditContent += (wchar_t *)outStr;
 	UpdateData(FALSE);
 
 	// 使控件总是自动滚动到最新一行
